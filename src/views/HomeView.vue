@@ -22,7 +22,7 @@
                  <li 
                     v-for="searchResult in searchResults" 
                     :key="searchResult.place_id" 
-                    @click="selectSearchResult(searchResult)"
+                    @click="previewCity(searchResult)"
                     class="py-2 cursor-pointer hover:bg-weather-primary transition">
                     {{ searchResult.display_name }}
                 </li>
@@ -30,7 +30,7 @@
 
             </ul>
 
-            <div v-if="weatherData" class="my-6 p-4 bg-weather-secondary rounded-lg shadow-lg max-w-md w-full">
+            <!-- <div v-if="weatherData" class="my-6 p-4 bg-weather-secondary rounded-lg shadow-lg max-w-md w-full">
               <h2 class="text-2xl font-semibold mb-4 border-b pb-2 border-weather-primary">Current Weather</h2>
               <div class="flex flex-col space-y-2">
                 <div class="flex justify-between">
@@ -46,7 +46,7 @@
                   <span>{{ new Date(weatherData.time).toLocaleTimeString() }}</span>
                 </div>
               </div>
-            </div>
+            </div> -->
 
 
       </div>
@@ -57,12 +57,15 @@
 <script setup>
 import { ref } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 
 const searchQuery = ref('')
 const queryTimeout = ref(null)
 const searchResults = ref(null)
 
-const weatherData = ref(null)
+const router = useRouter()
+
+// const weatherData = ref(null)
 
 const searchError = ref(null)
 
@@ -86,22 +89,39 @@ const getSearchResults = () => {
     }
   }, 300)
 }
-const selectSearchResult = (result) => {
-  searchQuery.value = result.display_name 
-  searchResults.value = null 
 
-  getWeatherData(result.lat ,result.lon)
+const previewCity = (searchResult) => {
+
+    console.log(searchResult);
+
+    const [city, state] = searchResult.display_name.split(",")
+    router.push({
+      name : "CityView",
+      params : { city : city, state : state },
+       query: {
+      lat: parseFloat(searchResult.lat),
+      lng: parseFloat(searchResult.lon),
+      preview: true
+    }
+    })
 }
 
-const getWeatherData = async (lat, lon) => {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
-  try {
-    const response = await axios.get(url)
-    weatherData.value = response.data.current_weather
-  } catch (error) {
-    console.error("Failed to fetch weather data:", error)
-  }
-}
+// const selectSearchResult = (result) => {
+//   searchQuery.value = result.display_name 
+//   searchResults.value = null 
+
+//   getWeatherData(result.lat ,result.lon)
+// }
+
+// const getWeatherData = async (lat, lon) => {
+//   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
+//   try {
+//     const response = await axios.get(url)
+//     weatherData.value = response.data.current_weather
+//   } catch (error) {
+//     console.error("Failed to fetch weather data:", error)
+//   }
+// }
 
 
 </script>
